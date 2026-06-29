@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout
+  title="Accessibility Checker FAQ"
+  description="Answers about automated accessibility checks, WCAG mapping, PDF reports, and the limits of a zero-budget hosted scanner."
+>
+  <section class="section card">
+    <h1>FAQ</h1>
+    <h2>Does this guarantee ADA compliance?</h2>
+    <p class="muted">No. This is an automated check that helps find common issues. Manual review is still necessary.</p>
+    <h2>Why is scanning asynchronous?</h2>
+    <p class="muted">The scanner uses GitHub Actions as a zero-budget background runner, so jobs are queued instead of running instantly in the browser.</p>
+    <h2>What standards are covered?</h2>
+    <p class="muted">The MVP reports automated findings tagged to WCAG 2.2 AA where the underlying rules expose those tags.</p>
+  </section>
+</BaseLayout>

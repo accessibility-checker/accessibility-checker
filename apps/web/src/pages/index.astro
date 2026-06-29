@@ -1,0 +1,140 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8787";
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
+---
+<BaseLayout
+  title="Free Accessibility Checker MVP | Async WCAG 2.2 Scan + PDF"
+  description="Queue an automated accessibility scan, review WCAG 2.2 findings, and download a stakeholder-friendly PDF report."
+>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="pill">Zero-budget async MVP</span>
+      <h1>Run automated accessibility scans and deliver a shareable PDF report.</h1>
+      <p>
+        This hosted MVP queues homepage scans in the background, checks for common WCAG issues with automated tooling,
+        and returns a report built for stakeholders, developers, and accessibility reviews.
+      </p>
+      <p>
+        It is designed for SEO-friendly content marketing on Cloudflare Pages while GitHub Actions handles the heavier scan work.
+      </p>
+    </div>
+    <div class="card">
+      <form class="scan-form stack" id="scan-form">
+        <div>
+          <label for="url">Website URL</label>
+          <input id="url" name="url" type="url" placeholder="https://example.com" required />
+        </div>
+        <div>
+          <label for="standard">Standard</label>
+          <select id="standard" name="standard">
+            <option value="wcag22aa">WCAG 2.2 AA</option>
+          </select>
+        </div>
+        <input id="turnstile-token" name="turnstileToken" type="hidden" />
+        {siteKey && <div class="cf-turnstile" data-sitekey={siteKey} data-callback="onTurnstileSuccess"></div>}
+        <button type="submit">Queue Accessibility Scan</button>
+      </form>
+      <div class="status" id="status">Waiting for a scan request.</div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <h2>Checks included</h2>
+      <p class="muted">Color contrast, missing alt text, label issues, heading structure, duplicate IDs, landmark usage, and accessible names.</p>
+    </article>
+    <article class="card">
+      <h2>Delivery format</h2>
+      <p class="muted">Users receive structured JSON in the UI and a downloadable PDF report when the async scan finishes.</p>
+    </article>
+    <article class="card">
+      <h2>Compliance framing</h2>
+      <p class="muted">Results are presented as automated findings mapped to WCAG tags. Manual review recommendations stay visible throughout.</p>
+    </article>
+  </section>
+
+  <section class="section card">
+    <h2>Why this architecture</h2>
+    <p class="muted">
+      Cloudflare Pages keeps the site fast and crawlable. A Worker validates input, queues jobs, and serves reports. GitHub Actions
+      runs Playwright and <code>axe-core</code> asynchronously, which is the most practical zero-budget hosted setup for this MVP.
+    </p>
+  </section>
+
+  <script is:inline define:vars={{ apiBase }}>
+    const statusEl = document.getElementById("status");
+    const form = document.getElementById("scan-form");
+    const turnstileField = document.getElementById("turnstile-token");
+
+    window.onTurnstileSuccess = (token) => {
+      turnstileField.value = token;
+    };
+
+    const setStatus = (message) => {
+      statusEl.textContent = message;
+    };
+
+    const pollJob = async (jobId) => {
+      const jobUrl = `${apiBase}/api/jobs/${jobId}`;
+      let attempts = 0;
+
+      while (attempts < 60) {
+        attempts += 1;
+        const response = await fetch(jobUrl);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setStatus(`Error checking job status:\n${data.error ?? "Unknown error"}`);
+          return;
+        }
+
+        if (data.status === "completed") {
+          const pdfUrl = `${apiBase}/api/report/${jobId}.pdf`;
+          setStatus(
+            `Scan complete.\n\nTitle: ${data.result.page.title}\nFinal URL: ${data.result.page.finalUrl}\nViolations: ${data.result.summary.totalViolations}\nNeeds manual review: ${data.result.manualChecks.length}\n\nDownload PDF: ${pdfUrl}`
+          );
+          return;
+        }
+
+        if (data.status === "failed") {
+          setStatus(`Scan failed.\n\n${data.error ?? "The scan runner could not complete this job."}`);
+          return;
+        }
+
+        setStatus(`Job ${jobId} is ${data.status}. Checking again in 10 seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      }
+
+      setStatus("The scan is still running. Please check back later.");
+    };
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      setStatus("Submitting scan request...");
+
+      const response = await fetch(`${apiBase}/api/scan`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          url: formData.get("url"),
+          standard: formData.get("standard"),
+          turnstileToken: formData.get("turnstileToken")
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setStatus(`Request failed:\n${data.error ?? "Unknown error"}`);
+        return;
+      }
+
+      setStatus(`Job queued.\n\nScan ID: ${data.scanId}\nStatus: ${data.status}\n\nPolling for completion...`);
+      await pollJob(data.scanId);
+    });
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</BaseLayout>

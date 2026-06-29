@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout
+  title="How The Accessibility Checker Works"
+  description="Learn how the async scan workflow validates URLs, runs automated WCAG checks, and turns results into a shareable PDF report."
+>
+  <section class="section card">
+    <h1>How it works</h1>
+    <p class="muted">The scan pipeline is intentionally simple so it can run on free infrastructure.</p>
+    <ol>
+      <li>A visitor submits a public homepage URL.</li>
+      <li>The Worker validates the request and queues a scan job.</li>
+      <li>GitHub Actions runs Playwright and axe-core against the page.</li>
+      <li>The runner generates a JSON summary and PDF report.</li>
+      <li>The Worker stores the finished report in KV and serves it back to the user.</li>
+    </ol>
+  </section>
+</BaseLayout>

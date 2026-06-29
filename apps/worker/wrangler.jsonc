@@ -1,0 +1,17 @@
+{
+  "name": "accessibility-checker-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-29",
+  "kv_namespaces": [
+    {
+      "binding": "SCAN_JOBS",
+      "id": "replace-with-your-kv-namespace-id"
+    }
+  ],
+  "vars": {
+    "GITHUB_OWNER": "replace-me",
+    "GITHUB_REPO": "replace-me",
+    "GITHUB_WORKFLOW_FILE": "run-scan.yml",
+    "RATE_LIMIT_MAX_PER_DAY": "25"
+  }
+}

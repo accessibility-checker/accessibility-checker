@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.dev.vars
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+npm-debug.log*

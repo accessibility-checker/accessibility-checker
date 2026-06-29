@@ -1,0 +1,13 @@
+{
+  "name": "@ac/scan-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scan": "node src/run-scan.js"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "playwright": "^1.53.2"
+  }
+}

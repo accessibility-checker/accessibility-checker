@@ -1,0 +1,15 @@
+{
+  "name": "accessibility-checker-mvp",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @ac/web && npm run build -w @ac/worker",
+    "dev:web": "npm run dev -w @ac/web",
+    "dev:worker": "npm run dev -w @ac/worker",
+    "test": "npm run test -w @ac/worker"
+  }
+}
